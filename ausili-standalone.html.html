@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionale Ausili Ortopedici</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="bg-blue-600 text-white p-4 shadow-lg">
+        <h1 class="text-2xl font-bold">Gestionale Ausili Ortopedici</h1>
+        <p class="text-sm opacity-90">Gestione ritiro e vendita ausili usati</p>
+    </div>
+
+    <div class="bg-white p-4 shadow">
+        <div class="max-w-6xl mx-auto flex gap-3 flex-wrap">
+            <input type="text" id="searchInput" placeholder="🔍 Cerca..." class="flex-1 min-w-64 px-4 py-2 border rounded-lg">
+            <button onclick="nuovaScheda()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">➕ Nuova</button>
+            <button onclick="esportaCSV()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">💾 Esporta</button>
+        </div>
+    </div>
+
+    <div id="listaSchede" class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <div id="modalScheda" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h2 id="titoloModal" class="text-2xl font-bold">Nuova Scheda</h2>
+                <button onclick="chiudiModal()" class="text-3xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" id="schedaId">
+                    <div class="md:col-span-2"><h3 class="font-bold text-lg text-blue-600 mb-3">Dati Cliente</h3></div>
+                    <div><label class="block text-sm font-medium mb-1">Nome</label><input type="text" id="nome" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Cognome</label><input type="text" id="cognome" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Indirizzo</label><input type="text" id="indirizzo" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Città</label><input type="text" id="citta" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Data Nascita</label><input type="date" id="dataNascita" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">CF</label><input type="text" id="cf" maxlength="16" class="w-full p-2 border rounded"></div>
+                    <div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Contatti</label><input type="text" id="contatti" class="w-full p-2 border rounded"></div>
+                    <div class="md:col-span-2"><h3 class="font-bold text-lg text-blue-600 mb-3 mt-4">Dati Ausilio</h3></div>
+                    <div><label class="block text-sm font-medium mb-1">Tipo Ausilio *</label>
+                        <select id="tipoAusilio" class="w-full p-2 border rounded">
+                            <option value="">Seleziona...</option>
+                            <option>Carrozzina</option>
+                            <option>Deambulatore</option>
+                            <option>Stampelle</option>
+                            <option>Bastone</option>
+                            <option>Sollevatore</option>
+                            <option>Letto ortopedico</option>
+                            <option>Materasso</option>
+                            <option>Scooter</option>
+                            <option>Altro</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium mb-1">Marca/Modello</label><input type="text" id="marcaModello" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Condizioni</label>
+                        <select id="condizioni" class="w-full p-2 border rounded">
+                            <option>ottime</option>
+                            <option selected>buone</option>
+                            <option>discrete</option>
+                            <option>da riparare</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium mb-1">Stato</label>
+                        <select id="stato" class="w-full p-2 border rounded">
+                            <option selected>in magazzino</option>
+                            <option>in riparazione</option>
+                            <option>venduto</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium mb-1">Prezzo Ritiro (€)</label><input type="number" step="0.01" id="prezzoRitiro" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Prezzo Vendita (€)</label><input type="number" step="0.01" id="prezzoVendita" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Data Ritiro</label><input type="date" id="dataRitiro" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium mb-1">Data Vendita</label><input type="date" id="dataVendita" class="w-full p-2 border rounded"></div>
+                    <div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Note</label><textarea id="note" rows="3" class="w-full p-2 border rounded"></textarea></div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-1">Foto Ausilio</label>
+                        <input type="file" id="fotoInput" accept="image/*" class="w-full p-2 border rounded">
+                        <div id="fotoPreview" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end gap-3 sticky bottom-0 bg-white">
+                <button onclick="chiudiModal()" class="px-6 py-2 border rounded hover:bg-gray-100">Annulla</button>
+                <button onclick="salvaScheda()" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">💾 Salva e Genera QR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalQR" style="display:none" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">QR Code Generato</h3>
+                <button onclick="chiudiQR()" class="text-3xl">&times;</button>
+            </div>
+            <div class="text-center">
+                <div id="qrcode" class="mb-4 flex justify-center"></div>
+                <p id="qrInfo" class="font-medium text-lg mb-4"></p>
+                <button onclick="stampaQR()" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">🖨️ Stampa QR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+var DB = [];
+var schedaAttuale = null;
+
+function carica() {
+    var s = localStorage.getItem('ausili');
+    if (s) DB = JSON.parse(s);
+    mostra();
+    var id = new URLSearchParams(location.search).get('scheda');
+    if (id) {
+        var sc = DB.find(function(x) { return x.id === id; });
+        if (sc) modificaScheda(sc);
+    }
+}
+
+function salva() {
+    localStorage.setItem('ausili', JSON.stringify(DB));
+}
+
+function mostra(filtro) {
+    var lista = document.getElementById('listaSchede');
+    var risultati = DB;
+    if (filtro) {
+        filtro = filtro.toLowerCase();
+        risultati = DB.filter(function(s) {
+            return (s.nome && s.nome.toLowerCase().indexOf(filtro) >= 0) ||
+                   (s.cognome && s.cognome.toLowerCase().indexOf(filtro) >= 0) ||
+                   (s.tipoAusilio && s.tipoAusilio.toLowerCase().indexOf(filtro) >= 0) ||
+                   (s.cf && s.cf.toLowerCase().indexOf(filtro) >= 0);
+        });
+    }
+    if (risultati.length === 0) {
+        lista.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500"><p class="text-lg">Nessuna scheda</p></div>';
+        return;
+    }
+    lista.innerHTML = risultati.map(function(s) {
+        var statoCol = s.stato === 'venduto' ? 'bg-green-100 text-green-800' : s.stato === 'in riparazione' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800';
+        var statoTxt = s.stato === 'venduto' ? 'Venduto' : s.stato === 'in riparazione' ? 'In riparazione' : 'In magazzino';
+        return '<div class="bg-white rounded-lg shadow hover:shadow-lg">' +
+            (s.foto ? '<img src="' + s.foto + '" class="w-full h-48 object-cover rounded-t-lg">' : '') +
+            '<div class="p-4">' +
+            '<h3 class="font-bold text-lg mb-2">' + (s.tipoAusilio || 'Ausilio') + '</h3>' +
+            '<p class="text-gray-700 mb-1">' + (s.nome || '') + ' ' + (s.cognome || '') + '</p>' +
+            (s.marcaModello ? '<p class="text-sm text-gray-600 mb-1">' + s.marcaModello + '</p>' : '') +
+            '<div class="flex gap-2 mb-2">' +
+            '<span class="text-xs px-2 py-1 rounded ' + statoCol + '">' + statoTxt + '</span>' +
+            '<span class="text-xs px-2 py-1 rounded bg-gray-100">' + s.condizioni + '</span>' +
+            '</div>' +
+            (s.prezzoVendita ? '<p class="text-lg font-bold text-green-600 mb-2">€ ' + s.prezzoVendita + '</p>' : '') +
+            '<div class="flex gap-2 mt-3">' +
+            '<button onclick="modificaScheda(' + JSON.stringify(s).replace(/"/g, '&quot;') + ')" class="flex-1 bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600">✏️ Modifica</button>' +
+            '<button onclick="mostraQR(' + JSON.stringify(s).replace(/"/g, '&quot;') + ')" class="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600">📱</button>' +
+            '<button onclick="elimina(\'' + s.id + '\')" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">🗑️</button>' +
+            '</div></div></div>';
+    }).join('');
+}
+
+function nuovaScheda() {
+    schedaAttuale = null;
+    document.getElementById('titoloModal').textContent = 'Nuova Scheda';
+    document.getElementById('schedaId').value = '';
+    document.getElementById('nome').value = '';
+    document.getElementById('cognome').value = '';
+    document.getElementById('indirizzo').value = '';
+    document.getElementById('citta').value = '';
+    document.getElementById('dataNascita').value = '';
+    document.getElementById('cf').value = '';
+    document.getElementById('contatti').value = '';
+    document.getElementById('tipoAusilio').value = '';
+    document.getElementById('marcaModello').value = '';
+    document.getElementById('condizioni').value = 'buone';
+    document.getElementById('stato').value = 'in magazzino';
+    document.getElementById('prezzoRitiro').value = '';
+    document.getElementById('prezzoVendita').value = '';
+    document.getElementById('dataRitiro').value = new Date().toISOString().split('T')[0];
+    document.getElementById('dataVendita').value = '';
+    document.getElementById('note').value = '';
+    document.getElementById('fotoInput').value = '';
+    document.getElementById('fotoPreview').innerHTML = '';
+    document.getElementById('modalScheda').style.display = 'flex';
+}
+
+function modificaScheda(s) {
+    schedaAttuale = s;
+    document.getElementById('titoloModal').textContent = 'Modifica Scheda';
+    document.getElementById('schedaId').value = s.id || '';
+    document.getElementById('nome').value = s.nome || '';
+    document.getElementById('cognome').value = s.cognome || '';
+    document.getElementById('indirizzo').value = s.indirizzo || '';
+    document.getElementById('citta').value = s.citta || '';
+    document.getElementById('dataNascita').value = s.dataNascita || '';
+    document.getElementById('cf').value = s.cf || '';
+    document.getElementById('contatti').value = s.contatti || '';
+    document.getElementById('tipoAusilio').value = s.tipoAusilio || '';
+    document.getElementById('marcaModello').value = s.marcaModello || '';
+    document.getElementById('condizioni').value = s.condizioni || 'buone';
+    document.getElementById('stato').value = s.stato || 'in magazzino';
+    document.getElementById('prezzoRitiro').value = s.prezzoRitiro || '';
+    document.getElementById('prezzoVendita').value = s.prezzoVendita || '';
+    document.getElementById('dataRitiro').value = s.dataRitiro || '';
+    document.getElementById('dataVendita').value = s.dataVendita || '';
+    document.getElementById('note').value = s.note || '';
+    document.getElementById('fotoPreview').innerHTML = s.foto ? '<img src="' + s.foto + '" class="max-w-xs rounded">' : '';
+    document.getElementById('modalScheda').style.display = 'flex';
+}
+
+function chiudiModal() {
+    document.getElementById('modalScheda').style.display = 'none';
+}
+
+function salvaScheda() {
+    var tipo = document.getElementById('tipoAusilio').value;
+    if (!tipo) {
+        alert('Seleziona il tipo di ausilio!');
+        return;
+    }
+    var scheda = {
+        id: document.getElementById('schedaId').value || Date.now().toString(),
+        nome: document.getElementById('nome').value,
+        cognome: document.getElementById('cognome').value,
+        indirizzo: document.getElementById('indirizzo').value,
+        citta: document.getElementById('citta').value,
+        dataNascita: document.getElementById('dataNascita').value,
+        cf: document.getElementById('cf').value.toUpperCase(),
+        contatti: document.getElementById('contatti').value,
+        tipoAusilio: tipo,
+        marcaModello: document.getElementById('marcaModello').value,
+        condizioni: document.getElementById('condizioni').value,
+        stato: document.getElementById('stato').value,
+        prezzoRitiro: document.getElementById('prezzoRitiro').value,
+        prezzoVendita: document.getElementById('prezzoVendita').value,
+        dataRitiro: document.getElementById('dataRitiro').value,
+        dataVendita: document.getElementById('dataVendita').value,
+        note: document.getElementById('note').value,
+        foto: schedaAttuale ? schedaAttuale.foto : null
+    };
+    var foto = document.getElementById('fotoInput').files[0];
+    if (foto) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            scheda.foto = e.target.result;
+            fineSalvataggio(scheda);
+        };
+        reader.readAsDataURL(foto);
+    } else {
+        fineSalvataggio(scheda);
+    }
+}
+
+function fineSalvataggio(scheda) {
+    if (schedaAttuale) {
+        DB = DB.map(function(s) { return s.id === scheda.id ? scheda : s; });
+    } else {
+        DB.push(scheda);
+    }
+    salva();
+    mostra();
+    chiudiModal();
+    mostraQR(scheda);
+}
+
+function elimina(id) {
+    if (confirm('Eliminare questa scheda?')) {
+        DB = DB.filter(function(s) { return s.id !== id; });
+        salva();
+        mostra();
+    }
+}
+
+function mostraQR(s) {
+    document.getElementById('qrcode').innerHTML = '';
+    var url = location.href.split('?')[0] + '?scheda=' + s.id;
+    new QRCode(document.getElementById('qrcode'), { text: url, width: 250, height: 250 });
+    document.getElementById('qrInfo').innerHTML = '<strong>' + s.tipoAusilio + '</strong><br>' + s.nome + ' ' + s.cognome;
+    schedaAttuale = s;
+    document.getElementById('modalQR').style.display = 'flex';
+}
+
+function chiudiQR() {
+    document.getElementById('modalQR').style.display = 'none';
+}
+
+function stampaQR() {
+    var canvas = document.querySelector('#qrcode canvas');
+    if (!canvas) return;
+    var w = window.open('', '', 'width=400,height=500');
+    w.document.write('<html><head><title>QR Code</title><style>body{text-align:center;padding:20px;font-family:Arial}</style></head><body>');
+    w.document.write('<h2>' + schedaAttuale.tipoAusilio + '</h2>');
+    w.document.write('<p>' + schedaAttuale.nome + ' ' + schedaAttuale.cognome + '</p>');
+    w.document.write('<img src="' + canvas.toDataURL() + '">');
+    w.document.write('<script>setTimeout(function(){window.print();window.close()},500)<\/script></body></html>');
+    w.document.close();
+}
+
+function esportaCSV() {
+    if (DB.length === 0) {
+        alert('Nessun dato da esportare!');
+        return;
+    }
+    var csv = 'ID,Nome,Cognome,CF,Tipo,Marca,Condizioni,Stato,PRitiro,PVendita,DRitiro,DVendita,Note\n';
+    DB.forEach(function(s) {
+        csv += '"' + (s.id||'') + '","' + (s.nome||'') + '","' + (s.cognome||'') + '","' + (s.cf||'') + '","';
+        csv += (s.tipoAusilio||'') + '","' + (s.marcaModello||'') + '","' + (s.condizioni||'') + '","' + (s.stato||'') + '","';
+        csv += (s.prezzoRitiro||'') + '","' + (s.prezzoVendita||'') + '","' + (s.dataRitiro||'') + '","' + (s.dataVendita||'') + '","';
+        csv += ((s.note||'').replace(/,/g,';')) + '"\n';
+    });
+    var blob = new Blob([csv], {type: 'text/csv'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ausili-backup-' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    mostra(e.target.value);
+});
+
+window.addEventListener('load', carica);
+    </script>
+</body>
+</html>
